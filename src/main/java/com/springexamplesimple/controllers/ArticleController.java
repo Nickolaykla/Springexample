@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -39,7 +38,7 @@ public class ArticleController {
     }
     @GetMapping("/article/{id}")
     public String articleDetails(@PathVariable(value ="id") long id, Model model) {
-        if(postRepository.existsById(id)) {
+        if(!postRepository.existsById(id)) {
             return "redirect:/article";
         }
         Optional<Article> article = postRepository.findById(id);
@@ -47,5 +46,30 @@ public class ArticleController {
         article.ifPresent(list::add);
         model.addAttribute("article", list);
         return "article-details";
+    }
+    @GetMapping("/article/{id}/edit")
+    public String articleEdit(@PathVariable(value ="id") long id, Model model) {
+        if(!postRepository.existsById(id)) {
+            return "redirect:/article";
+        }
+        Optional<Article> article = postRepository.findById(id);
+        ArrayList<Article> list = new ArrayList<>();
+        article.ifPresent(list::add);
+        model.addAttribute("article", list);
+        return "article-edit";
+    }
+    @PostMapping("/article/{id}/edit")
+    public String articlePostUpdate(@PathVariable(value = "id") long id, @RequestParam String title, @RequestParam String fullText, Model model) {
+        Article article = postRepository.findById(id).orElseThrow();
+        article.setTitle(title);
+        article.setFullText(fullText);
+        postRepository.save(article);
+        return "redirect:/article";
+    }
+    @PostMapping("/article/{id}/remove")
+    public String articlePostDelete(@PathVariable(value = "id") long id, Model model) {
+        Article article = postRepository.findById(id).orElseThrow();
+        postRepository.delete(article);
+        return "redirect:/article";
     }
 }
